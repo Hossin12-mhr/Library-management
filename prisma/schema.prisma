@@ -1,0 +1,27 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+enum Role { ADMIN MEMBER }
+enum RequestStatus { PENDING APPROVED DELIVERED REJECTED CANCELLED }
+enum LoanStatus { ACTIVE RETURNED OVERDUE }
+enum ReservationStatus { WAITING FULFILLED CANCELLED }
+enum FineStatus { UNPAID PAID WAIVED }
+enum NotificationType { INFO SUCCESS WARNING ERROR }
+enum InventoryStatus { AVAILABLE LOANED LOST DAMAGED }
+model User { id String @id @default(cuid()); name String; email String @unique; active Boolean @default(true); passwordHash String; role Role @default(MEMBER); memberCode String? @unique; phone String?; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; sessionVersion Int @default(0); profile MemberProfile?; requests LoanRequest[]; loans Loan[]; reservations Reservation[]; fines Fine[]; notifications Notification[]; auditLogs AuditLog[] }
+model Category { id String @id @default(cuid()); name String @unique; books Book[] }
+model Author { id String @id @default(cuid()); name String @unique; books Book[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+model Book { id String @id @default(cuid()); title String; author String; authorId String?; isbn String? @unique; publisher String?; publishedYear Int?; description String?; topic String?; coverUrl String?; totalStock Int @default(0); availableStock Int @default(0); categoryId String?; authorRef Author? @relation(fields:[authorId], references:[id], onDelete:SetNull); category Category? @relation(fields:[categoryId], references:[id], onDelete:SetNull); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; copies BookCopy[]; loans Loan[]; requests LoanRequest[]; reservations Reservation[]; @@index([title]); @@index([author]); @@index([topic]); @@index([categoryId]); @@index([authorId]) }
+model LoanRequest { id String @id @default(cuid()); userId String; bookId String; status RequestStatus @default(PENDING); note String?; code String? @unique; createdAt DateTime @default(now()); reviewedAt DateTime?; user User @relation(fields:[userId], references:[id], onDelete:Restrict); book Book @relation(fields:[bookId], references:[id], onDelete:Restrict); @@index([status,createdAt]); @@index([userId,status]); @@index([bookId,status]) }
+model BookCopy { id String @id @default(cuid()); code String @unique; bookId String; status InventoryStatus @default(AVAILABLE); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; book Book @relation(fields:[bookId], references:[id], onDelete:Restrict); loans Loan[]; @@index([bookId,status]) }
+model MemberProfile { id String @id @default(cuid()); userId String @unique; grade String?; className String?; address String?; guardianName String?; notes String?; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; user User @relation(fields:[userId], references:[id], onDelete:Restrict) }
+model Loan { id String @id @default(cuid()); code String @unique; userId String; bookId String; copyId String?; status LoanStatus @default(ACTIVE); startDate DateTime @default(now()); dueDate DateTime; returnedAt DateTime?; extensionCount Int @default(0); user User @relation(fields:[userId], references:[id], onDelete:Restrict); book Book @relation(fields:[bookId], references:[id], onDelete:Restrict); copy BookCopy? @relation(fields:[copyId], references:[id], onDelete:SetNull); @@index([userId,status]); @@index([dueDate,status]); @@index([copyId]); @@index([bookId,status]) }
+model Reservation { id String @id @default(cuid()); userId String; bookId String; status ReservationStatus @default(WAITING); position Int?; createdAt DateTime @default(now()); user User @relation(fields:[userId], references:[id], onDelete:Restrict); book Book @relation(fields:[bookId], references:[id], onDelete:Restrict); @@index([bookId,status,position]); @@index([userId,status])
+  @@unique([bookId,position])
+}
+model Fine { id String @id @default(cuid()); userId String; loanId String; amount Int; reason String; status FineStatus @default(UNPAID); createdAt DateTime @default(now()); paidAt DateTime?; user User @relation(fields:[userId], references:[id], onDelete:Restrict); loan Loan @relation(fields:[loanId], references:[id], onDelete:Restrict); @@unique([loanId,reason]); @@index([userId,status]) }
+model Notification { id String @id @default(cuid()); userId String; type NotificationType @default(INFO); title String; message String; dedupeKey String? @unique; readAt DateTime?; createdAt DateTime @default(now()); user User @relation(fields:[userId], references:[id], onDelete:Restrict); @@index([userId,readAt])
+  @@index([userId,createdAt]) }
+model Setting { id String @id @default(cuid()); key String @unique; value String; updatedAt DateTime @updatedAt }
+model AuditLog { id String @id @default(cuid()); userId String?; action String; entity String; entityId String?; metadata String?; createdAt DateTime @default(now()); user User? @relation(fields:[userId], references:[id], onDelete:SetNull); @@index([createdAt]) }
+
+model RateLimit { key String @id; count Int @default(0); resetAt DateTime; }

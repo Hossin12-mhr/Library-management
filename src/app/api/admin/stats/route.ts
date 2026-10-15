@@ -1,0 +1,3 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+import {NextResponse} from 'next/server';import {prisma} from '@/lib/prisma';import {requireRole} from '@/lib/auth';export async function GET(){try{await requireRole('ADMIN');const [books,members,active,overdue,pending,fines]=await Promise.all([prisma.book.count(),prisma.user.count({where:{role:'MEMBER'}}),prisma.loan.count({where:{status:'ACTIVE'}}),prisma.loan.count({where:{status:'OVERDUE'}}),prisma.loanRequest.count({where:{status:'PENDING'}}),prisma.fine.aggregate({where:{status:'UNPAID'},_sum:{amount:true}})]);return NextResponse.json({books,members,active,overdue,pending,unpaidFines:fines._sum.amount||0})}catch{return NextResponse.json({error:'دسترسی غیرمجاز'},{status:403})}}

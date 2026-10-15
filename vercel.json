@@ -1,0 +1,10 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run vercel-build",
+  "installCommand": "npm install",
+  "regions": ["fra1"],
+  "crons": [
+    { "path": "/api/jobs/fines", "schedule": "0 1 * * *" },
+    { "path": "/api/jobs/notifications", "schedule": "5 1 * * *" }
+  ]
+}

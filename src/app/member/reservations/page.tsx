@@ -1,0 +1,3 @@
+'use client';
+import { useEffect,useState } from 'react';
+export default function Reservations(){const [rows,setRows]=useState<any[]>([]);async function load(){setRows(await fetch('/api/reservations').then(r=>r.json()))}useEffect(()=>{load()},[]);async function cancel(id:string){await fetch('/api/reservations/'+id,{method:'DELETE'});load()}return <main className="container"><h1>رزروهای من</h1><div className="list">{rows.filter(r => r.status === 'WAITING').sort((a,b) => (a.position ?? 0) - (b.position ?? 0)).map(r=><div className="card row" key={r.id}><div><b>{r.book.title}</b><small>نوبت {r.position}</small></div><button onClick={()=>cancel(r.id)}>لغو رزرو</button></div>)}{rows.length===0&&<div className="card">رزرو فعالی ندارید.</div>}</div></main>}

@@ -1,0 +1,55 @@
+{
+  "name": "school-library",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "vercel-build": "prisma generate && next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "lint": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build",
+    "verify": "npm run audit && npm run test && npm run typecheck && npm run build",
+    "smoke": "tsx scripts/smoke-test.ts",
+    "audit": "npm run security:preflight && npm run static-check && npm run schema-check && npm run release-check && npm run config-check && node scripts/project-audit.mjs",
+    "test": "tsx tests/business.test.ts",
+    "jobs:notifications": "echo \"POST /api/jobs/notifications with Authorization: Bearer CRON_SECRET\"",
+    "static-check": "node scripts/static-check.mjs",
+    "security:preflight": "node scripts/security-preflight.mjs",
+    "schema-check": "node scripts/schema-preflight.mjs",
+    "release-check": "node scripts/release-preflight.mjs",
+    "config-check": "node scripts/config-preflight.mjs",
+    "db:deploy": "prisma migrate deploy",
+    "inventory:check": "tsx scripts/inventory-check.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "bcryptjs": "^3.0.2",
+    "jose": "^6.0.10",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "prisma": "^6.15.0",
+    "tailwindcss": "^4.1.12",
+    "@tailwindcss/postcss": "^4.1.12",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0 <23",
+    "npm": ">=10.0.0 <12"
+  }
+}
